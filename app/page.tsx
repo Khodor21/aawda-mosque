@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-
+import Link from "next/link";
 /* ══════════════════════ Configuration ══════════════════════ */
 
 const MOSQUE_NAME = "مسجد العودة - البداوي";
@@ -173,16 +173,16 @@ function PrayerCard({
 function Ticker() {
   const items = [...TICKER_MESSAGES, ...TICKER_MESSAGES];
   return (
-    <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/90 py-3">
+    <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/90 py-2">
       <div dir="ltr" className="overflow-hidden">
         <div className="animate-marquee flex w-max items-center gap-24 pl-24">
           {items.map((msg, i) => (
             <span
               key={i}
               dir="rtl"
-              className="flex items-center gap-5 whitespace-nowrap text-2xl text-white/70"
+              className="flex items-center gap-5 whitespace-nowrap text-lg text-white/70"
             >
-              <span className="text-[#587D55] text-lg">✦</span>
+              <span className="text-[#587D55] text-base">✦</span>
               {msg}
             </span>
           ))}
@@ -331,10 +331,15 @@ export default function SignagePage() {
         </div>
 
         {/* Center: Mosque name */}
-        <h1 className="font-thm-bold text-2xl text-white drop-shadow-lg text-center">
-          {MOSQUE_NAME}
-        </h1>
-
+        {/* Center: Mosque name */}
+        <Link
+          href="/athkar"
+          className="transition-transform hover:scale-105 active:scale-95"
+        >
+          <h1 className="font-thm-bold text-2xl text-white drop-shadow-lg text-center cursor-pointer hover:text-[#8fc97f] transition-colors">
+            {MOSQUE_NAME}
+          </h1>
+        </Link>
         {/* Left: Sunrise */}
         <div className="text-left">
           <p className="text-base text-white/50 mb-1">الشــــــــــروق</p>
