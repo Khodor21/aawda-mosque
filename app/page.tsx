@@ -18,12 +18,12 @@ interface PrayerDef {
 }
 
 const PRAYERS: PrayerDef[] = [
-  { key: "Fajr", ar: "الفجر", iqamahMin: 20 },
+  { key: "Fajr", ar: "الفجر", iqamahMin: 23 },
   { key: "Sunrise", ar: "الشروق", iqamahMin: 0 },
-  { key: "Dhuhr", ar: "الظهر", iqamahMin: 12 },
-  { key: "Asr", ar: "العصر", iqamahMin: 10 },
-  { key: "Maghrib", ar: "المغرب", iqamahMin: 7 },
-  { key: "Isha", ar: "العشاء", iqamahMin: 10 },
+  { key: "Dhuhr", ar: "الظهر", iqamahMin: 13 },
+  { key: "Asr", ar: "العصر", iqamahMin: 13 },
+  { key: "Maghrib", ar: "المغرب", iqamahMin: 8 },
+  { key: "Isha", ar: "العشاء", iqamahMin: 8 },
 ];
 
 const FALLBACK_TIMINGS: Record<string, string> = {
@@ -101,15 +101,15 @@ function PrayerCard({
       className={[
         "relative flex flex-col items-center justify-between rounded-2xl py-6 px-3 text-center transition-all duration-700 select-none",
         isActive
-          ? "bg-[#1a2e18] border-2 border-[#587D55] shadow-[0_0_40px_rgba(88,125,85,0.4)] scale-[1.04] z-10"
+          ? "bg-[#2a1608] border-2 border-[#b5661f] shadow-[0_0_40px_rgba(181,102,31,0.35)] scale-[1.04] z-10"
           : isNext
-            ? "bg-[#111] border border-[#587D55]/40"
+            ? "bg-[#111] border border-[#b5661f]/40"
             : "bg-[#0d0d0d] border border-white/8",
       ].join(" ")}
     >
       {/* badge */}
       {isActive && (
-        <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#587D55] px-4 py-1 text-sm font-bold text-black">
+        <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#b5661f] px-4 py-1 text-sm font-bold text-black">
           الصلاة الحالية
         </span>
       )}
@@ -123,7 +123,7 @@ function PrayerCard({
       <p
         className={[
           "font-thm-bold text-3xl",
-          isActive ? "text-[#8fc97f]" : "text-white/70",
+          isActive ? "text-[#e08c3e]" : "text-white/70",
         ].join(" ")}
       >
         {name}
@@ -146,7 +146,7 @@ function PrayerCard({
         <span
           className={[
             "mb-1 text-xl font-bold",
-            isActive ? "text-[#8fc97f]" : "text-white/40",
+            isActive ? "text-[#e08c3e]" : "text-white/40",
           ].join(" ")}
         >
           {period}
@@ -158,7 +158,7 @@ function PrayerCard({
         <p
           className={[
             "text-lg",
-            isActive ? "text-[#8fc97f]/80" : "text-white/30",
+            isActive ? "text-[#e08c3e]" : "text-white",
           ].join(" ")}
         >
           إقامة بعد {iqamahMin} د
@@ -173,16 +173,16 @@ function PrayerCard({
 function Ticker() {
   const items = [...TICKER_MESSAGES, ...TICKER_MESSAGES];
   return (
-    <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/90 py-2">
+    <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/90 py-3">
       <div dir="ltr" className="overflow-hidden">
         <div className="animate-marquee flex w-max items-center gap-24 pl-24">
           {items.map((msg, i) => (
             <span
               key={i}
               dir="rtl"
-              className="flex items-center gap-5 whitespace-nowrap text-lg text-white/70"
+              className="flex items-center gap-5 whitespace-nowrap text-xl text-white"
             >
-              <span className="text-[#587D55] text-base">✦</span>
+              <span className="text-[#b5661f] text-base">✦</span>
               {msg}
             </span>
           ))}
@@ -281,14 +281,33 @@ export default function SignagePage() {
         ? next.sec - nowSec
         : 0;
 
-    return { current, next, inIqamahWindow, countdownSec, nextIsTomorrow };
+    const activeKey = inIqamahWindow ? current.key : next?.key;
+
+    let nextKey = null;
+    if (inIqamahWindow) {
+      nextKey = next?.key;
+    } else if (next && !nextIsTomorrow) {
+      const nextIndex = today.findIndex((p) => p.key === next!.key);
+      if (nextIndex !== -1 && nextIndex + 1 < today.length) {
+        nextKey = today[nextIndex + 1].key;
+      }
+    }
+
+    return {
+      current,
+      next,
+      inIqamahWindow,
+      countdownSec,
+      nextIsTomorrow,
+      activeKey,
+      nextKey,
+    };
   }, [now, timings, tomorrowFajr]);
 
-  /* Clock */
-  const clockH = String(now.getHours()).padStart(2, "0");
+  /* Clock — 12-hour format, no AM/PM */
+  const clockH = String(now.getHours() % 12 || 12).padStart(2, "0");
   const clockM = String(now.getMinutes()).padStart(2, "0");
   const clockS = String(now.getSeconds()).padStart(2, "0");
-  const clockPeriod = now.getHours() >= 12 ? "PM" : "AM";
 
   const gregorian = now.toLocaleDateString("ar-LB-u-nu-latn", {
     weekday: "long",
@@ -330,22 +349,22 @@ export default function SignagePage() {
           </p>
         </div>
 
-        {/* Center: Mosque name */}
-        {/* Center: Mosque name */}
+        {/* Center: Mosque name (Now absolutely centered) */}
         <Link
           href="/athkar"
-          className="transition-transform hover:scale-105 active:scale-95"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-105 active:scale-95"
         >
-          <h1 className="font-thm-bold text-2xl text-white drop-shadow-lg text-center cursor-pointer hover:text-[#8fc97f] transition-colors">
+          <h1 className="font-thm-bold text-2xl text-white drop-shadow-lg text-center cursor-pointer hover:text-[#e08c3e] transition-colors">
             {MOSQUE_NAME}
           </h1>
         </Link>
+
         {/* Left: Sunrise */}
         <div className="text-left">
           <p className="text-base text-white/50 mb-1">الشــــــــــروق</p>
-          <p className="font-thm-bold text-xl text-[#8fc97f]">
+          <p className="font-thm-bold text-xl text-[#e08c3e]">
             {sunrise.time}
-            <span className="ml-1 text-base text-[#8fc97f]">
+            <span className="ml-1 text-base text-[#e08c3e]">
               {sunrise.period}
             </span>
           </p>
@@ -354,7 +373,7 @@ export default function SignagePage() {
 
       {/* ── MIDDLE: Clock + Countdown ── */}
       <section className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3">
-        {/* Big clock — like the Mawaqit screenshot */}
+        {/* Big clock — 12-hour format, no AM/PM */}
         <div className="flex items-start justify-center gap-1 leading-none">
           <div className="flex flex-col items-end pt-6 gap-2">
             <span className="font-thm-bold text-2xl text-white/90 tabular-nums">
@@ -369,10 +388,10 @@ export default function SignagePage() {
         {/* Countdown pill */}
         {state.inIqamahWindow ? (
           <div className="mt-1 flex flex-col items-center gap-2">
-            <p className="font-thm-bold animate-pulse-soft text-4xl text-[#8fc97f]">
+            <p className="font-thm-bold animate-pulse-soft text-4xl text-[#e08c3e]">
               حان وقت صلاة {state.current.ar} — باقي على الإقامة
             </p>
-            <div className="rounded-2xl border border-[#587D55] bg-[#1a2e18] px-14 py-3">
+            <div className="rounded-2xl border border-[#b5661f] bg-[#2a1608] px-14 py-3">
               <span className="font-thm-bold text-7xl tabular-nums text-white">
                 {formatCountdown(state.countdownSec)}
               </span>
@@ -401,8 +420,8 @@ export default function SignagePage() {
               time={time}
               period={period}
               iqamahMin={p.iqamahMin}
-              isActive={state.current.key === p.key}
-              isNext={state.next?.key === p.key && !state.nextIsTomorrow}
+              isActive={state.activeKey === p.key}
+              isNext={state.nextKey === p.key && !state.nextIsTomorrow}
             />
           );
         })}
